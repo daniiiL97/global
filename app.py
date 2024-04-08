@@ -2,15 +2,16 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-if 'model' not in st.session_state:
-    st.session_state['model'] = GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
+@st.cache_resource
+def load_model():
+    return GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
 
-if 'tokenizer' not in st.session_state:
-    st.session_state['tokenizer'] = GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
+@st.cache_resource
+def load_tokenizer():
+    return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
 # Загрузка предобученной модели и токенизатора
-tokenizer =  st.session_state['tokenizer']
-model = st.session_state['model'] 
-
+tokenizer =  load_tokenizer()
+model = load_model()
 # Заголовок приложения
 st.title("Глобал ГЕЙнерация")
 
