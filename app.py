@@ -2,7 +2,7 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-
+print("Hello world")
 # Загрузка предобученной модели и токенизатора
 tokenizer = GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
 model = GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
