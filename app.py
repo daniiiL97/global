@@ -2,6 +2,7 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
+import nltk
 import re
 
 # Загрузка модели и токенизатора с использованием кеширования
@@ -29,8 +30,9 @@ temperature = st.slider("Выберите температуру:", min_value=0.
 # Ползунок для выбора количества слов
 max_words = st.slider("Выберите количество слов:", min_value=10, max_value=200, step=5, value=50)
 
-# Регулярное выражение для поиска URL в тексте
+# Регулярные выражения для удаления URL и временных меток
 url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+time_pattern = r'\b(?:вчера|сегодня)\s+\d{1,2}\s*:\s*\d{2}\s*\w{2}\s+[\w,]+\s+\d{1,2}/\d{1,2}\b'
 
 # Если пользователь ввел текст, то выполняется генерация текста
 if text_input:
@@ -58,7 +60,10 @@ if text_input:
     # Удаление ссылок из сгенерированного текста
     generated_text_cleaned = re.sub(url_pattern, '', generated_text)
 
-    # Отображение сгенерированного текста без ссылок
+    # Удаление временных меток из сгенерированного текста
+    generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
+
+    # Отображение сгенерированного текста без ссылок и временных меток
     st.subheader("Сгенерированный текст:")
     st.write(generated_text_cleaned)
 
