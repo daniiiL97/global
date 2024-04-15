@@ -2,7 +2,6 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-import nltk
 import re
 
 # Загрузка модели и токенизатора с использованием кеширования
@@ -13,6 +12,21 @@ def load_model():
 @st.cache(allow_output_mutation=True)
 def load_tokenizer():
     return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
+
+def custom_sent_tokenize(text):
+    # Определение паттерна для разбиения текста на предложения
+    sentence_endings = re.compile(r'[.!?]\s*')  # Поиск точки, вопросительного или восклицательного знака с пробелом после
+    
+    # Разбиение текста на предложения с учетом паттерна
+    sentences = sentence_endings.split(text)
+    
+    # Объединение предложений с добавлением пробелов между ними
+    result = []
+    for i in range(0, len(sentences)-1, 2):
+        sentence = sentences[i] + sentences[i+1]  # Объединение пары предложений (текущее и следующее)
+        result.append(sentence.strip())  # Добавление объединенного предложения в результат с удалением лишних пробелов
+    
+    return result
 
 # Загрузка модели и токенизатора
 tokenizer = load_tokenizer()
@@ -64,16 +78,17 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Разделение сгенерированного текста на предложения
-    sentences = nltk.sent_tokenize(generated_text)
+    # Удаление ссылок и временных меток из сгенерированного текста
+    generated_text_cleaned = re.sub(url_pattern, '', generated_text)
+    generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
 
-    # Добавление точек (.) после каждого предложения
-    sentences_with_punctuation = [sentence.strip() + '.' for sentence in sentences if sentence.strip()]
+    # Разделение сгенерированного текста на предложения с учетом пользовательского разбиения
+    sentences = custom_sent_tokenize(generated_text_cleaned)
 
     # Собрать предложения в единый текст с пробелами между ними
-    full_text = ' '.join(sentences_with_punctuation)
+    full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
 
-    # Отображение сгенерированного текста с знаками препинания
+    # Отображение сгенерированного текста без точек и знаков препинания
     st.subheader("Сгенерированный текст:")
     st.write(full_text)
 
