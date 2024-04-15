@@ -2,11 +2,7 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-import nltk
 import re
-
-nltk.download('punkt')  # Загрузка пакета для токенизации предложений
-
 
 # Загрузка модели и токенизатора с использованием кеширования
 @st.cache(allow_output_mutation=True)
@@ -59,18 +55,11 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Разделение сгенерированного текста на предложения
-    sentences = nltk.sent_tokenize(generated_text)
-
-    # Отображение каждого предложения
-    for i, sentence in enumerate(sentences, start=1):
-        st.write(f"Предложение {i}: {sentence}")
-
     # Удаление ссылок из сгенерированного текста
     generated_text_cleaned = re.sub(url_pattern, '', generated_text)
 
-    # Отображение очищенного текста без ссылок
-    st.subheader("Сгенерированный текст без ссылок:")
+    # Отображение сгенерированного текста без ссылок
+    st.subheader("Сгенерированный текст:")
     st.write(generated_text_cleaned)
 
 # Сайдбар с дополнительной информацией о модели и температуре
