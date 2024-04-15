@@ -33,11 +33,18 @@ max_words = st.slider("Выберите количество слов:", min_val
 # Регулярные выражения для удаления URL и временных меток
 url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 time_pattern = r'\b(?:вчера|сегодня)\s+\d{1,2}\s*:\s*\d{2}\s*\w{2}\s+[\w,]+\s+\d{1,2}/\d{1,2}\b'
+date_pattern = r'\d{4}-\d{2}–\d{2}\s+\d{2}\s*:\s*\d{2}'
 
 # Если пользователь ввел текст, то выполняется генерация текста
 if text_input:
+    # Удаление HTML-тегов из текста
     text_without_html = BeautifulSoup(text_input, "html.parser").get_text()
-    inputs = tokenizer.encode(text_without_html, return_tensors="pt")
+
+    # Удаление временных меток в формате "2019-10–11 22 :00" из текста
+    text_cleaned = re.sub(date_pattern, '', text_without_html)
+
+    # Кодирование текста для модели
+    inputs = tokenizer.encode(text_cleaned, return_tensors="pt")
 
     if torch.cuda.is_available():
         inputs = inputs.to('cuda')
@@ -64,11 +71,11 @@ if text_input:
     # Разделение сгенерированного текста на предложения
     sentences = nltk.sent_tokenize(generated_text_cleaned)
 
-    # Соединение предложений в единый текст с добавлением точек и знаков препинания
-    full_text = ' '.join([sentence.strip() + '.' for sentence in sentences if sentence.strip()])
+    # Собрать предложения в единый текст с пробелами между ними
+    full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
 
-    # Отображение сгенерированного текста с точками и знаками препинания
-    st.subheader("Сгенерированный текст с точками и знаками препинания:")
+    # Отображение сгенерированного текста без точек и знаков препинания
+    st.subheader("Сгенерированный текст:")
     st.write(full_text)
 
 # Сайдбар с дополнительной информацией о модели и температуре
