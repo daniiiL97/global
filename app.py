@@ -5,6 +5,9 @@ import torch
 import nltk
 import re
 
+nltk.download('punkt')  # Загрузка пакета для токенизации предложений
+
+
 # Загрузка модели и токенизатора с использованием кеширования
 @st.cache(allow_output_mutation=True)
 def load_model():
