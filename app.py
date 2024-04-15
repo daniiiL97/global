@@ -25,7 +25,7 @@ st.title("Глобал ГЕЙнерация")
 text_input = st.text_input("Введите начало текста для генерации:")
 
 # Ползунок для выбора температуры
-temperature = st.slider("Выберите температуру:", min_value=0.01, max_value=2.0, step=0.1, value=0.9)
+temperature = st.slider("Выберите температуру:", min_value=0.1, max_value=2.0, step=0.1, value=0.9)
 
 # Ползунок для выбора количества слов
 max_words = st.slider("Выберите количество слов:", min_value=10, max_value=200, step=5, value=50)
@@ -57,15 +57,20 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Удаление ссылок из сгенерированного текста
+    # Удаление ссылок и временных меток из сгенерированного текста
     generated_text_cleaned = re.sub(url_pattern, '', generated_text)
-
-    # Удаление временных меток из сгенерированного текста
     generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
 
-    # Отображение сгенерированного текста без ссылок и временных меток
-    st.subheader("Сгенерированный текст:")
-    st.write(generated_text_cleaned)
+    # Разделение сгенерированного текста на предложения
+    sentences = nltk.sent_tokenize(generated_text_cleaned)
+
+    # Добавление точек и знаков препинания к каждому предложению
+    punctuated_sentences = [sentence.strip() + '.' for sentence in sentences if sentence.strip()]
+
+    # Отображение сгенерированных предложений
+    st.subheader("Сгенерированный текст с точками и знаками препинания:")
+    for i, sentence in enumerate(punctuated_sentences, start=1):
+        st.write(f"Предложение {i}: {sentence}")
 
 # Сайдбар с дополнительной информацией о модели и температуре
 st.sidebar.title("О МОДЕЛИ:")
