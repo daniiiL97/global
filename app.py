@@ -64,11 +64,11 @@ if text_input:
     # Разделение сгенерированного текста на предложения
     sentences = nltk.sent_tokenize(generated_text_cleaned)
 
-    # Собрать предложения в единый текст с пробелами между ними
-    full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
+    # Соединение предложений в единый текст с добавлением точек и знаков препинания
+    full_text = ' '.join([sentence.strip() + '.' for sentence in sentences if sentence.strip()])
 
-    # Отображение сгенерированного текста без точек и знаков препинания
-    st.subheader("Сгенерированный текст:")
+    # Отображение сгенерированного текста с точками и знаками препинания
+    st.subheader("Сгенерированный текст с точками и знаками препинания:")
     st.write(full_text)
 
 # Сайдбар с дополнительной информацией о модели и температуре
