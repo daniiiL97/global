@@ -3,15 +3,16 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
 import re
+import nltk
 
 # Загрузка модели и токенизатора с использованием кеширования
 @st.cache(allow_output_mutation=True)
 def load_model():
-    return GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
+    return GPT2LMHeadModel.from_pretrained("sberbank-ai/rugpt3small_based_on_gpt2")
 
 @st.cache(allow_output_mutation=True)
 def load_tokenizer():
-    return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
+    return GPT2Tokenizer.from_pretrained("sberbank-ai/rugpt3small_based_on_gpt2")
 
 def custom_sent_tokenize(text):
     # Определение паттерна для разбиения текста на предложения
@@ -28,15 +29,26 @@ def custom_sent_tokenize(text):
     
     return result
 
+# Функция для добавления пробелов после знаков препинания
+def add_punctuation(text):
+    # Список знаков препинания, после которых нужно добавить пробел
+    punctuations = ['.', '!', '?']
+    
+    # Добавление пробела после знаков препинания
+    for char in punctuations:
+        text = text.replace(char, char + ' ')
+    
+    return text
+
 # Загрузка модели и токенизатора
 tokenizer = load_tokenizer()
 model = load_model()
 
 # Заголовок приложения
-st.title("Глобал ГЕЙнерация")
+st.title("Глобал Генерация текста")
 
 # Поле для ввода текста
-text_input = st.text_input("Введите начало текста для генерации:")
+text_input = st.text_area("Введите начало текста для генерации:")
 
 # Ползунок для выбора температуры
 temperature = st.slider("Выберите температуру:", min_value=0.01, max_value=2.0, step=0.1, value=0.9)
@@ -44,21 +56,13 @@ temperature = st.slider("Выберите температуру:", min_value=0.
 # Ползунок для выбора количества слов
 max_words = st.slider("Выберите количество слов:", min_value=10, max_value=200, step=5, value=50)
 
-# Регулярные выражения для удаления URL и временных меток
-url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-time_pattern = r'\b(?:вчера|сегодня)\s+\d{1,2}\s*:\s*\d{2}\s*\w{2}\s+[\w,]+\s+\d{1,2}/\d{1,2}\b'
-date_pattern = r'\d{4}-\d{2}–\d{2}\s+\d{2}\s*:\s*\d{2}'
-
 # Если пользователь ввел текст, то выполняется генерация текста
 if text_input:
     # Удаление HTML-тегов из текста
     text_without_html = BeautifulSoup(text_input, "html.parser").get_text()
 
-    # Удаление временных меток в формате "2019-10–11 22 :00" из текста
-    text_cleaned = re.sub(date_pattern, '', text_without_html)
-
     # Кодирование текста для модели
-    inputs = tokenizer.encode(text_cleaned, return_tensors="pt")
+    inputs = tokenizer.encode(text_without_html, return_tensors="pt")
 
     if torch.cuda.is_available():
         inputs = inputs.to('cuda')
@@ -78,37 +82,35 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Удаление ссылок и временных меток из сгенерированного текста
-    generated_text_cleaned = re.sub(url_pattern, '', generated_text)
-    generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
+    # Добавление пробелов после знаков препинания
+    processed_text = add_punctuation(generated_text)
 
-    # Разделение сгенерированного текста на предложения с учетом пользовательского разбиения
-    sentences = custom_sent_tokenize(generated_text_cleaned)
+    # Разделение сгенерированного текста на предложения
+    sentences = custom_sent_tokenize(processed_text)
 
     # Собрать предложения в единый текст с пробелами между ними
     full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
 
-    # Отображение сгенерированного текста без точек и знаков препинания
+    # Отображение сгенерированного текста
     st.subheader("Сгенерированный текст:")
     st.write(full_text)
 
 # Сайдбар с дополнительной информацией о модели и температуре
-st.sidebar.title("О МОДЕЛИ:")
+st.sidebar.title("О Модели:")
 st.sidebar.markdown("""
 - **Была дообучена большая языковая модель на базе GPT-2 - sberbank-ai/rugpt3small_based_on_gpt2.**
 \n
-- **В качестве входных данных был собран датасет объемом 16 000 строк из беседы NSDPRSSD.**
+- **В качестве входных данных был использован датасет объемом 16 000 строк из беседы NSDPRSSD.**
 """)
 
 st.sidebar.markdown("""
-### О ТЕМПЕРАТУРЕ:
-- Параметр температуры влияет на случайность генерации текста.
-- Чем выше значение, тем более случайным и разнообразным будет текст.
-- Чем ниже значение, тем более детерминированным и предсказуемым будет текст.
+### О Температуре:
+- Параметр температуры влияет на разнообразие и случайность генерируемого текста.
+- Чем выше значение, тем более разнообразен будет текст.
+- Чем ниже значение, тем более предсказуем будет текст.
 """)
 
 st.sidebar.markdown("""
-### ПРО ОШИБКУ:
-* Если вы введете большой промт и поставите минимальную длину, то выдаст ошибку.
-* Для решения нужно просто увеличить ползунок количества слов и ошибка пропадет.
+### Обратите внимание:
+* Если при вводе большого текста возникают ошибки, увеличьте параметр "Количество слов".
 """)
