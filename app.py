@@ -15,16 +15,15 @@ def load_tokenizer():
 
 def custom_sent_tokenize(text):
     # Определение паттерна для разбиения текста на предложения
-    sentence_endings = re.compile(r'[.!?]\s*')  # Поиск точки, вопросительного или восклицательного знака с пробелом после
+    sentence_endings = re.compile(r'(?<=[.!?]) +')  # Используем положительное lookbehind для сохранения знаков препинания
     
     # Разбиение текста на предложения с учетом паттерна
     sentences = sentence_endings.split(text)
     
     # Объединение предложений с добавлением пробелов между ними
     result = []
-    for i in range(0, len(sentences)-1, 2):
-        sentence = sentences[i] + sentences[i+1]  # Объединение пары предложений (текущее и следующее)
-        result.append(sentence.strip())  # Добавление объединенного предложения в результат с удалением лишних пробелов
+    for sentence in sentences:
+        result.append(sentence.strip())  # Добавление предложения в результат с удалением лишних пробелов
     
     return result
 
