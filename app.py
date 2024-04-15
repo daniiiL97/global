@@ -64,17 +64,16 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Удаление ссылок и временных меток из сгенерированного текста
-    generated_text_cleaned = re.sub(url_pattern, '', generated_text)
-    generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
-
     # Разделение сгенерированного текста на предложения
-    sentences = nltk.sent_tokenize(generated_text_cleaned)
+    sentences = nltk.sent_tokenize(generated_text)
+
+    # Добавление точек (.) после каждого предложения
+    sentences_with_punctuation = [sentence.strip() + '.' for sentence in sentences if sentence.strip()]
 
     # Собрать предложения в единый текст с пробелами между ними
-    full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
+    full_text = ' '.join(sentences_with_punctuation)
 
-    # Отображение сгенерированного текста без точек и знаков препинания
+    # Отображение сгенерированного текста с знаками препинания
     st.subheader("Сгенерированный текст:")
     st.write(full_text)
 
