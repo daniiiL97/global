@@ -2,16 +2,22 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-@st.cache_resource
+import nltk
+import re
+
+# Загрузка модели и токенизатора с использованием кеширования
+@st.cache(allow_output_mutation=True)
 def load_model():
     return GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
 
-@st.cache_resource
+@st.cache(allow_output_mutation=True)
 def load_tokenizer():
     return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
-# Загрузка предобученной модели и токенизатора
-tokenizer =  load_tokenizer()
+
+# Загрузка модели и токенизатора
+tokenizer = load_tokenizer()
 model = load_model()
+
 # Заголовок приложения
 st.title("Глобал ГЕЙнерация")
 
@@ -24,13 +30,8 @@ temperature = st.slider("Выберите температуру:", min_value=0.
 # Ползунок для выбора количества слов
 max_words = st.slider("Выберите количество слов:", min_value=10, max_value=200, step=5, value=50)
 
-# Секция с информацией о модели
-st.sidebar.title("О МОДЕЛИ:")
-st.sidebar.markdown("""
-- **Была дообучена большая языковая модель на базе GPT-2 - sberbank-ai/rugpt3small_based_on_gpt2.**
-\n
-- **В качестве входных данных был собран датасет объемом 16 000 строк из беседы NSDPRSSD.**
-""")
+# Регулярное выражение для поиска URL в тексте
+url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
 # Если пользователь ввел текст, то выполняется генерация текста
 if text_input:
@@ -55,19 +56,35 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-    # Отображение сгенерированного текста
-    st.subheader("Сгенерированный текст:")
-    st.write(generated_text)
+    # Разделение сгенерированного текста на предложения
+    sentences = nltk.sent_tokenize(generated_text)
 
-# Пояснение о температуре
+    # Отображение каждого предложения
+    for i, sentence in enumerate(sentences, start=1):
+        st.write(f"Предложение {i}: {sentence}")
+
+    # Удаление ссылок из сгенерированного текста
+    generated_text_cleaned = re.sub(url_pattern, '', generated_text)
+
+    # Отображение очищенного текста без ссылок
+    st.subheader("Сгенерированный текст без ссылок:")
+    st.write(generated_text_cleaned)
+
+# Сайдбар с дополнительной информацией о модели и температуре
+st.sidebar.title("О МОДЕЛИ:")
+st.sidebar.markdown("""
+- **Была дообучена большая языковая модель на базе GPT-2 - sberbank-ai/rugpt3small_based_on_gpt2.**
+\n
+- **В качестве входных данных был собран датасет объемом 16 000 строк из беседы NSDPRSSD.**
+""")
+
 st.sidebar.markdown("""
 ### О ТЕМПЕРАТУРЕ:
 - Параметр температуры влияет на случайность генерации текста.
-- Чем выше значение, тем более случайным и разнообразным и «креативным» будет текст.
+- Чем выше значение, тем более случайным и разнообразным будет текст.
 - Чем ниже значение, тем более детерминированным и предсказуемым будет текст.
 """)
 
-# Дополнительное пояснение о возможной ошибке
 st.sidebar.markdown("""
 ### ПРО ОШИБКУ:
 * Если вы введете большой промт и поставите минимальную длину, то выдаст ошибку.
