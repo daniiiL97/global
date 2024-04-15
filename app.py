@@ -2,7 +2,7 @@ import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from bs4 import BeautifulSoup
 import torch
-import nltk.data
+import nltk
 import re
 
 # Загрузка модели и токенизатора с использованием кеширования
@@ -22,7 +22,7 @@ model = load_model()
 st.title("Глобал ГЕЙнерация")
 
 # Поле для ввода текста
-text_input = st.text_area("Введите начало текста для генерации:")
+text_input = st.text_input("Введите начало текста для генерации:")
 
 # Ползунок для выбора температуры
 temperature = st.slider("Выберите температуру:", min_value=0.01, max_value=2.0, step=0.1, value=0.9)
@@ -32,7 +32,7 @@ max_words = st.slider("Выберите количество слов:", min_val
 
 # Регулярные выражения для удаления URL и временных меток
 url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-time_pattern = r'\b(?:вчера|сегодня)\s+\d{1,2}\s*:\s*\d{2}\s*\w{2}\s+\[\w,\]+\s+\d{1,2}/\d{1,2}\b'
+time_pattern = r'\b(?:вчера|сегодня)\s+\d{1,2}\s*:\s*\d{2}\s*\w{2}\s+[\w,]+\s+\d{1,2}/\d{1,2}\b'
 
 # Если пользователь ввел текст, то выполняется генерация текста
 if text_input:
@@ -61,9 +61,8 @@ if text_input:
     generated_text_cleaned = re.sub(url_pattern, '', generated_text)
     generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
 
-    # Разбиение сгенерированного текста на предложения с использованием NLTK
-    tokenizer_nltk = nltk.data.load('tokenizers/punkt/russian.pickle')
-    sentences = tokenizer_nltk.tokenize(generated_text_cleaned)
+    # Разделение сгенерированного текста на предложения
+    sentences = nltk.sent_tokenize(generated_text_cleaned)
 
     # Соединение предложений в единый текст с добавлением точек и знаков препинания
     full_text = ' '.join([sentence.strip() + '.' for sentence in sentences if sentence.strip()])
@@ -85,4 +84,10 @@ st.sidebar.markdown("""
 - Параметр температуры влияет на случайность генерации текста.
 - Чем выше значение, тем более случайным и разнообразным будет текст.
 - Чем ниже значение, тем более детерминированным и предсказуемым будет текст.
+""")
+
+st.sidebar.markdown("""
+### ПРО ОШИБКУ:
+* Если вы введете большой промт и поставите минимальную длину, то выдаст ошибку.
+* Для решения нужно просто увеличить ползунок количества слов и ошибка пропадет.
 """)
