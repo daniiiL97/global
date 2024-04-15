@@ -78,6 +78,10 @@ if text_input:
     # Преобразование сгенерированного текста в строку
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
+    # Добавление точки в конце сгенерированного текста, если она отсутствует
+    if not generated_text.endswith('.'):
+        generated_text += '.'
+
     # Удаление ссылок и временных меток из сгенерированного текста
     generated_text_cleaned = re.sub(url_pattern, '', generated_text)
     generated_text_cleaned = re.sub(time_pattern, '', generated_text_cleaned)
