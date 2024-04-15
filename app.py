@@ -14,16 +14,12 @@ def load_tokenizer():
     return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
 
 def custom_sent_tokenize(text):
-    # Определение паттерна для разбиения текста на предложения
-    sentence_endings = re.compile(r'(?<=[.!?]) +')  # Используем положительное lookbehind для сохранения знаков препинания
+    # Используем регулярное выражение для разбиения текста на предложения
+    # Сохраняем знаки препинания как отдельные токены
+    sentences = re.split(r'(?<=[.!?]) +', text)
     
-    # Разбиение текста на предложения с учетом паттерна
-    sentences = sentence_endings.split(text)
-    
-    # Объединение предложений с добавлением пробелов между ними
-    result = []
-    for sentence in sentences:
-        result.append(sentence.strip())  # Добавление предложения в результат с удалением лишних пробелов
+    # Удаление пустых строк из списка предложений
+    result = [sentence.strip() for sentence in sentences if sentence.strip()]
     
     return result
 
@@ -89,9 +85,9 @@ if text_input:
     sentences = custom_sent_tokenize(generated_text_cleaned)
 
     # Собрать предложения в единый текст с пробелами между ними
-    full_text = ' '.join(sentence.strip() for sentence in sentences if sentence.strip())
+    full_text = ' '.join(sentence for sentence in sentences)
 
-    # Отображение сгенерированного текста без точек и знаков препинания
+    # Отображение сгенерированного текста
     st.subheader("Сгенерированный текст:")
     st.write(full_text)
 
