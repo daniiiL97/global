@@ -5,11 +5,11 @@ import torch
 import re
 
 # Загрузка модели и токенизатора с использованием кеширования
-@st.cache(allow_output_mutation=True)
+@st.cache_data(allow_output_mutation=True)
 def load_model():
     return GPT2LMHeadModel.from_pretrained("danik97/global-generator-ai")
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data(allow_output_mutation=True)
 def load_tokenizer():
     return GPT2Tokenizer.from_pretrained("danik97/global-generator-ai")
 
