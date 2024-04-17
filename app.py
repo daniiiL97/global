@@ -34,7 +34,7 @@ st.title("Глобал ГЕЙнерация")
 text_input = st.text_input("Введите начало текста для генерации:")
 
 # Ползунок для выбора температуры
-temperature = st.slider("Выберите температуру:", min_value=0.01, max_value=2.0, step=0.1, value=0.9)
+temperature = st.slider("Выберите температуру:", min_value=0.1, max_value=2.0, step=0.1, value=0.9)
 
 # Ползунок для выбора количества слов
 max_words = st.slider("Выберите количество слов:", min_value=10, max_value=200, step=5, value=50)
